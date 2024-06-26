@@ -41,6 +41,8 @@ private:
 	bool server_reachable();
 	bool log_has_been_uploaded(const std::string& file_path);
 	void mark_log_as_uploaded(const std::string& file_path);
+	bool send_log_to_server_it(const std::string& file_path);
+	std::string read_file_ulog(const std::string& path);
 
 	std::string find_most_recent_log();
 

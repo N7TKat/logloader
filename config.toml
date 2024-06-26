@@ -1,5 +1,5 @@
-email = "you@example.com"
+email = "thanaphat.khattawee@gmail.com"
 server = "review.px4.io"
-connection_url = "udp://:14551"
+connection_url = "udp://:14540"
 upload_enabled = true
 public_logs = false

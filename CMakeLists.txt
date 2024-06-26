@@ -15,10 +15,13 @@ find_package(MAVSDK REQUIRED)
 include_directories(third_party/cpp-httplib/)
 include_directories(third_party/tomlplusplus/)
 
+find_package(nlohmann_json REQUIRED)
+
 # Create executable
 add_executable(logloader
     src/main.cpp
     src/LogLoader.cpp
+    # src/upload_api.cpp
 )
 
 target_link_libraries(logloader
@@ -26,6 +29,7 @@ target_link_libraries(logloader
     OpenSSL::SSL
     OpenSSL::Crypto
     MAVSDK::mavsdk
+    nlohmann_json::nlohmann_json
 )
 
 # Binary installation

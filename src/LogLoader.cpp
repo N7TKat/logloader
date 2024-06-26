@@ -120,6 +120,7 @@ void LogLoader::run()
 	}
 
 	upload_thread.join();
+	std::cout << "Upload Thread Joined" << std::endl;
 }
 
 bool LogLoader::request_log_entries()
@@ -197,6 +198,15 @@ bool LogLoader::download_log(const mavsdk::LogFiles::Entry& entry, const std::st
 
 		// TODO: logic to cancel log download
 
+		// if (_telemetry->armed()) {
+		// 	_exiting = true;
+		// 	prom.set_value(mavsdk::LogFiles::Result::Timeout);
+		// 	std::cout << std::endl << "Download cancelled.. due to Vehicle on Armed" << std::endl;
+		// 	//_should_exit = true;
+		// 	return;
+		// }
+		//***Process exit permanently, not restart***
+
 		if (_should_exit) {
 			_exiting = true;
 			prom.set_value(mavsdk::LogFiles::Result::Timeout);
@@ -212,6 +222,8 @@ bool LogLoader::download_log(const mavsdk::LogFiles::Entry& entry, const std::st
 			  << "\t" << entry.date << "\t"
 			  << entry.size_bytes / 1e6 << "MB"
 			  << "\t" << int(progress.progress * 100.f) << "%\t" << rate_kbps << " Kbps" << std::flush;
+
+		// _exiting = false;
 	});
 
 	auto result = future_result.get();
@@ -262,7 +274,7 @@ void LogLoader::upload_logs_thread()
 
 			// Upload the log
 			if (server_reachable()) {
-				if (send_log_to_server(log_path)) {
+				if (send_log_to_server_it(log_path)/*send_log_to_server(log_path)*/) {
 					mark_log_as_uploaded(log_path);
 
 				} else {
@@ -408,4 +420,52 @@ std::string LogLoader::find_most_recent_log()
 	}
 
 	return latest_log;
+}
+
+std::string LogLoader::read_file_ulog(const std::string& path)
+{
+	std::ifstream ifs(path, std::ios::binary);
+	std::ostringstream oss;
+	oss << ifs.rdbuf();
+	return oss.str();
+}
+
+bool LogLoader::send_log_to_server_it(const std::string& file_path)
+{
+	std::cout << "Send Log to Cloud Server" << std::endl;
+
+	std::string file_path2 = "/home/thanaphat/logloader/logs/2024-05-30T04:56:06Z.ulg";
+
+	httplib::Client cli("https://ics-data-center-dev-7vhfmrccba-as.a.run.app");
+
+	std::string file_content = read_file_ulog(file_path2);
+
+	httplib::MultipartFormDataItems items = {
+		{"files", file_content, "2024-05-30T04:56:06Z.ulg", "application/octet-stream"},
+		{"destination", "/test", "", ""},
+		{"permission", "private", "", ""}
+	};
+
+	// Create headers and add the API key
+	httplib::Headers headers = {
+		{"X-API-Key", "X27QtDYvBkgBJ2fb8TMgSb6Rq8sTtViJ"}  // Replace with your actual API key
+	};
+
+	// Send a POST request with the multipart form data and headers
+	auto res = cli.Post("/v1/files", headers, items);
+
+	// Check the response
+	if (res) {
+		std::cout << "Status: " << res->status << std::endl;
+		std::cout << "Response body: " << res->body << std::endl;
+		std::cout << "Send Log to Cloud Server : Complete" << std::endl;
+
+		return true;
+
+	} else {
+		std::cout << "Error: " << res.error() << std::endl;
+		return false;
+
+	}
+
 }
