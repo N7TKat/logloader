@@ -22,7 +22,7 @@ make debug
 popd
 
 # Setup project directory
-cp $THIS_DIR/build/logloader ~/.local/bin
+cp $THIS_DIR/build/logloader "${HOME}/.local/bin"
 mkdir -p $XDG_DATA_HOME/logloader/logs
 cp $THIS_DIR/config.toml $XDG_DATA_HOME/logloader/
 
